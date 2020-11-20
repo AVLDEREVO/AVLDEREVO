@@ -1,0 +1,144 @@
+#include <iostream>
+
+using namespace std;
+
+template <typename T>
+class Tree {
+private:
+	Tree* left = nullptr;
+	Tree* right = nullptr;
+	T key;
+	int height = 0;
+public:
+	Tree() {};
+	Tree(T k) {
+		key = k;
+	};
+
+	int Height(Tree* p) {
+		if (p != nullptr && p->key) {
+			return height;
+		}
+		return 0;
+	}
+
+	int bfactor(Tree* p)
+	{
+		return Height(p->right) - Height(p->left);
+	}
+
+	void fixheight(Tree* p)
+	{
+		int hl = Height(p->left);
+		char hr = Height(p->right);
+		if (hl > hr) {
+			p->height = hl + 1;
+		}
+		else {
+			p->height = hr + 1;
+		}
+	}
+
+	Tree* rotateright(Tree* p) // правый поворот вокруг p
+	{
+		Tree* q = p->left;
+		p->left = q->right;
+		q->right = p;
+		fixheight(p);
+		fixheight(q);
+		return q;
+	}
+
+	Tree* rotateleft(Tree* q) // левый поворот вокруг q
+	{
+		Tree* p = q->right;
+		q->right = p->left;
+		p->left = q;
+		fixheight(q);
+		fixheight(p);
+		return p;
+	}
+
+	Tree* balance(Tree* p) // балансировка узла p
+	{
+		fixheight(p);
+		if (bfactor(p) == 2)
+		{
+			if (bfactor(p->right) < 0)
+				p->right = rotateright(p->right);
+			return rotateleft(p);
+		}
+		if (bfactor(p) == -2)
+		{
+			if (bfactor(p->left) > 0)
+				p->left = rotateleft(p->left);
+			return rotateright(p);
+		}
+		return p; // балансировка не нужна
+	}
+
+	Tree* insert(Tree* p, T k) // вставка ключа k в дерево с корнем p
+	{
+		if (!p) {
+			return new Tree(k);
+		}
+		if (k < p->key)
+			p->left = insert(p->left, k);
+		else
+			p->right = insert(p->right, k);
+		return balance(p);
+	}
+
+	Tree* findmin(Tree* p) // поиск узла с минимальным ключом в дереве p 
+	{
+		if (p->left) {
+			return findmin(p->left);
+		}
+		else {
+			return p;
+		}
+	}
+
+	T findmin2() {
+		return key;
+	}
+	Tree* removemin(Tree* p) // удаление узла с минимальным ключом из дерева p
+	{
+		if (p->left == 0)
+			return p->right;
+		p->left = removemin(p->left);
+		return balance(p);
+	}
+
+	Tree* remove(Tree* p, T k) // удаление ключа k из дерева p
+	{
+		if (!p) {
+			return 0;
+		}
+		if (k < p->key)
+			p->left = remove(p->left, k);
+		else if (k > p->key)
+			p->right = remove(p->right, k);
+		else //  k == p->key 
+		{
+			Tree* q = p->left;
+			Tree* r = p->right;
+			delete p;
+			if (!r) return q;
+			Tree* min = findmin(r);
+			min->right = removemin(r);
+			min->left = q;
+			return balance(min);
+		}
+		return balance(p);
+	}
+};
+
+
+int main() {
+	Tree<int> tree;
+	Tree<int>* treee = &tree;
+	tree.insert(treee, 8);
+	tree.remove(treee, 8);
+	cout << tree.findmin2();
+}
